@@ -32,7 +32,7 @@ public class UserService {
     }
 
     @Transactional
-    public boolean updateUser(Long id, User updatedUser) {
+    public Optional<User> updateUser(Long id, User updatedUser) {
         return userRepository.findById(id)
                 .map(existingUser -> {
                     existingUser.setFirstName(updatedUser.getFirstName());
@@ -41,6 +41,15 @@ public class UserService {
                     existingUser.setPhone(updatedUser.getPhone());
                     existingUser.setRole(updatedUser.getRole());
                     normalizeEmail(existingUser);
+                    return existingUser;
+                });
+    }
+
+    @Transactional
+    public boolean deleteUser(Long id) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    userRepository.delete(user);
                     return true;
                 })
                 .orElse(false);
