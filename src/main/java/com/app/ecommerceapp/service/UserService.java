@@ -1,5 +1,8 @@
 package com.app.ecommerceapp.service;
 
+import com.app.ecommerceapp.dto.UserRequest;
+import com.app.ecommerceapp.dto.UserResponse;
+import com.app.ecommerceapp.mapper.UserMapper;
 import com.app.ecommerceapp.model.User;
 import com.app.ecommerceapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,32 +19,35 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public List<User> fetchAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponse> fetchAllUsers() {
+        return userRepository.findAll().stream()
+                .map(userMapper::toResponse)
+                .toList();
     }
 
     @Transactional
-    public User addUser(User user) {
+    public UserResponse addUser(UserRequest request) {
+        User user = userMapper.toEntity(request);
         normalizeEmail(user);
-        return userRepository.save(user);
+        User savedUser = userRepository.saveAndFlush(user);
+        return userMapper.toResponse(savedUser);
     }
 
-    public Optional<User> fetchUser(Long id) {
-        return userRepository.findById(id);
+    public Optional<UserResponse> fetchUser(Long id) {
+        return userRepository.findById(id)
+                .map(userMapper::toResponse);
     }
 
     @Transactional
-    public Optional<User> updateUser(Long id, User updatedUser) {
+    public Optional<UserResponse> updateUser(Long id, UserRequest request) {
         return userRepository.findById(id)
                 .map(existingUser -> {
-                    existingUser.setFirstName(updatedUser.getFirstName());
-                    existingUser.setLastName(updatedUser.getLastName());
-                    existingUser.setEmail(updatedUser.getEmail());
-                    existingUser.setPhone(updatedUser.getPhone());
-                    existingUser.setRole(updatedUser.getRole());
+                    userMapper.updateEntity(request, existingUser);
                     normalizeEmail(existingUser);
-                    return existingUser;
+                    User savedUser = userRepository.saveAndFlush(existingUser);
+                    return userMapper.toResponse(savedUser);
                 });
     }
 
