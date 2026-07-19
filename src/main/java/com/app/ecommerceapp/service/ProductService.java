@@ -31,6 +31,14 @@ public class ProductService {
                 .map(productMapper::toResponse);
     }
 
+    public List<ProductResponse> searchProducts(String keyword) {
+        String normalizedKeyword = keyword == null ? "" : keyword.strip();
+        return productRepository.searchProducts(normalizedKeyword)
+                .stream()
+                .map(productMapper::toResponse)
+                .toList();
+    }
+
     @Transactional
     public ProductResponse createProduct(ProductRequest productRequest) {
         Product product = productMapper.toEntity(productRequest);
