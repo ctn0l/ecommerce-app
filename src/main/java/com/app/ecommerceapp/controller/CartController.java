@@ -1,7 +1,7 @@
 package com.app.ecommerceapp.controller;
 
 import com.app.ecommerceapp.dto.CartItemRequest;
-import com.app.ecommerceapp.model.CartItem;
+import com.app.ecommerceapp.dto.CartItemResponse;
 import com.app.ecommerceapp.service.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,9 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CartItem>> getCart(@RequestHeader("X-User-ID") String userId) {
+    public ResponseEntity<List<CartItemResponse>> getCart(
+            @RequestHeader("X-User-ID") String userId
+    ) {
         return ResponseEntity.ok(cartService.getCart(userId));
     }
 
