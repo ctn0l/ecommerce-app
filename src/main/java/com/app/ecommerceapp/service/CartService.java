@@ -1,6 +1,8 @@
 package com.app.ecommerceapp.service;
 
 import com.app.ecommerceapp.dto.CartItemRequest;
+import com.app.ecommerceapp.dto.CartItemResponse;
+import com.app.ecommerceapp.mapper.CartItemMapper;
 import com.app.ecommerceapp.model.CartItem;
 import com.app.ecommerceapp.model.Product;
 import com.app.ecommerceapp.model.User;
@@ -22,6 +24,7 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final CartItemMapper cartItemMapper;
 
     @Transactional
     public void addToCart(String userId, CartItemRequest request) {
@@ -71,9 +74,11 @@ public class CartService {
     }
 
     @Transactional(readOnly = true)
-    public List<CartItem> getCart(String userId) {
+    public List<CartItemResponse> getCart(String userId) {
         Long parsedUserId = parseUserId(userId);
-        return cartItemRepository.findAllByUserId(parsedUserId);
+        return cartItemRepository.findAllByUserId(parsedUserId).stream()
+                .map(cartItemMapper::toResponse)
+                .toList();
     }
 
     private Long parseUserId(String userId) {

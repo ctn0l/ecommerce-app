@@ -1,6 +1,8 @@
 package com.app.ecommerceapp.service;
 
 import com.app.ecommerceapp.dto.CartItemRequest;
+import com.app.ecommerceapp.dto.CartItemResponse;
+import com.app.ecommerceapp.mapper.CartItemMapper;
 import com.app.ecommerceapp.model.CartItem;
 import com.app.ecommerceapp.model.Product;
 import com.app.ecommerceapp.model.User;
@@ -38,11 +40,19 @@ class CartServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private CartItemMapper cartItemMapper;
+
     private CartService cartService;
 
     @BeforeEach
     void setUp() {
-        cartService = new CartService(cartItemRepository, userRepository, productRepository);
+        cartService = new CartService(
+                cartItemRepository,
+                userRepository,
+                productRepository,
+                cartItemMapper
+        );
     }
 
     @Test
@@ -149,19 +159,23 @@ class CartServiceTest {
     void returnsItemsBelongingToUserCart() {
         CartItem firstItem = new CartItem();
         CartItem secondItem = new CartItem();
+        CartItemResponse firstResponse = response(1L);
+        CartItemResponse secondResponse = response(2L);
         when(cartItemRepository.findAllByUserId(1L))
                 .thenReturn(List.of(firstItem, secondItem));
+        when(cartItemMapper.toResponse(firstItem)).thenReturn(firstResponse);
+        when(cartItemMapper.toResponse(secondItem)).thenReturn(secondResponse);
 
-        List<CartItem> cart = cartService.getCart("1");
+        List<CartItemResponse> cart = cartService.getCart("1");
 
-        assertThat(cart).containsExactly(firstItem, secondItem);
+        assertThat(cart).containsExactly(firstResponse, secondResponse);
     }
 
     @Test
     void returnsEmptyListWhenCartHasNoItems() {
         when(cartItemRepository.findAllByUserId(1L)).thenReturn(List.of());
 
-        List<CartItem> cart = cartService.getCart("1");
+        List<CartItemResponse> cart = cartService.getCart("1");
 
         assertThat(cart).isEmpty();
     }
@@ -180,5 +194,16 @@ class CartServiceTest {
         product.setStockQuantity(stockQuantity);
         product.setPrice(new BigDecimal("19.99"));
         return product;
+    }
+
+    private CartItemResponse response(Long id) {
+        return new CartItemResponse(
+                id,
+                10L,
+                "Product",
+                1,
+                new BigDecimal("19.99"),
+                new BigDecimal("19.99")
+        );
     }
 }
